@@ -117,6 +117,25 @@ function activate(context) {
         }
     }));
 
+    context.subscriptions.push(vscode.commands.registerCommand('splunk.search.adhoc.editor', async () => {
+        let editor = vscode.window.activeTextEditor;
+        let languageId = vscode.window.activeTextEditor.document.languageId;
+        let fileExtension = vscode.window.activeTextEditor.document.uri.path;
+        let search;
+
+        if (languageId === "splunk_search" || languageId === "spl" || fileExtension.indexOf(".spl") !== -1 || fileExtension.indexOf(".splunk") !== -1) {
+            search = editor.document.getText();
+        } else if (!editor.selection.isEmpty) {
+			search = editor.document.getText(editor.selection);
+		}
+
+        if (search) {
+            let searchResult = await searchProvider.runSearch(search);
+            splunkOutputChannel.appendLine(searchResult);
+            splunkOutputChannel.show();
+        }
+    }));
+
     // Set up Splunk modular visualization creator
     context.subscriptions.push(vscode.commands.registerCommand('splunk.new.modviz', async () => {
         let destFolder = await vscode.window.showOpenDialog({
